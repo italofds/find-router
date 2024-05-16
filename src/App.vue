@@ -59,15 +59,18 @@
 		</header>
 
 		<main class="flex-grow-1 overflow-auto position-relative">
-			<div class="cover d-flex align-items-center" v-if="mapMarkers.length == 0">
+			<div class="cover d-flex align-items-center" style="backdrop-filter: blur(10px);" v-if="mapMarkers.length == 0">
 				<div class="container text-center text-light">
-					<h1>Encontrar Roteador</h1>
-					<p class="lead">Informe o endereço MAC do roteador para buscar sua localização geográfica:</p>
-					<form @submit.prevent="handleFormSubmit" class="row justify-content-center">
-						<div class="col-md-auto col-sm-12">
+					<h1 class="mb-3">Encontrar Roteador</h1>
+					<p class="lead col-lg-6 mx-auto mb-5">Esta ferramenta recebe o endereço MAC de um ponto de acesso <em>Wi-Fi</em> e consulta um banco de dados de geolocalização para apresentar sua posição geográfica em um mapa interativo. Proporciona uma visualização precisa e rápida, sendo ideal para o rastreamento e a análise de dispositivos de rede.</p>
+					<form @submit.prevent="handleFormSubmit" class="row justify-content-center" >
+						<div class="col-lg-6 mx-auto">
 							<div class="input-group">
-								<input  v-maska data-maska="HH:HH:HH:HH:HH:HH" data-maska-tokens="H:[0-9a-fA-F]" v-model="macAddress" id="inputMacAddress" type="text" class="form-control form-control-lg text-center" placeholder="##:##:##:##:##:##" required="required">
+								<input  v-maska data-maska="HH:HH:HH:HH:HH:HH" data-maska-tokens="H:[0-9a-fA-F]" v-model="macAddress" id="inputMacAddress" type="text" class="form-control form-control-lg text-center" placeholder="Endereço MAC" required="required">
 								<button id="btnSearch" class="btn btn-primary btn-lg" type="submit">Buscar</button>
+							</div>
+							<div id="macAddressNotFound" class="invalid-feedback">
+								Roteador não encontrado. Informe outro endereço MAC.
 							</div>
 						</div>						
 					</form>
@@ -75,7 +78,17 @@
 			</div>
 
 			<GMapMap ref="myMapRef" class="h-100" :center="mapCenter" :zoom="mapZoom" map-type-id="terrain" :options="mapOptions">
-				<GMapMarker :key="marker" v-for="marker in mapMarkers" :position="marker.position"/>	
+				<GMapMarker :key="marker" v-for="marker in mapMarkers" :position="marker.position" @click="openInfo()">
+					<GMapInfoWindow :opened="isInfoOpened" :closeclick="true" @closeclick="hideInfo()">
+						<div class="p-3">
+							<h3 class="mb-2 text-dark">Roteador Localizado!</h3>
+							<div class="mb-1 text-dark"><strong>Coordenadas (latitude/longitude):</strong></div>
+							<div class="mb-3 text-dark">{{ mapCenter.lat }}, {{ mapCenter.lng }}</div>
+							<a href="" @click="clearResult()">(Clique aqui pra realizar nova pesquisa)</a>
+						</div>						
+					</GMapInfoWindow>
+				</GMapMarker>
+				
 			</GMapMap>
 		</main>
 
@@ -108,37 +121,51 @@ export default {
 				mapTypeControlOptions: {
 					position: 7
 				},
-			}
+			},
+			isInfoOpened: true
 		}
 	},
 	computed: {
 	},
 	methods: {
+		openInfo() {
+			this.isInfoOpened = true;
+		},
+		hideInfo() {
+			this.isInfoOpened = false;
+		},
+		clearResult() {
+			this.mapMarkers = [];
+			this.mapCenter = { lat: 0, lng: 0 };
+			this.macAddress = "";
+		},
 		async handleFormSubmit() {
+			document.querySelector('#inputMacAddress').classList.remove("is-invalid");
+			document.querySelector('#macAddressNotFound').classList.remove("d-block");
+
+
 			const data = {
 				"considerIp": "false",
 				"wifiAccessPoints": [
 					{
-					"macAddress": "C0:9F:E1:C9:60:B0",
-					"signalStrength": -35,
-					"signalToNoiseRatio": 0
+						"macAddress": "3c:37:86:5d:75:d4",
+						"signalStrength": -35,
+						"signalToNoiseRatio": 0
 					},
 					{
-					"macAddress": this.macAddress,
-					"signalStrength": -35,
-					"signalToNoiseRatio": 0
+						"macAddress": this.macAddress,
+						"signalStrength": -35,
+						"signalToNoiseRatio": 0
 					}
 				]
-				}
+			}
 
 			try {
 				var url  = "https://www.googleapis.com/geolocation/v1/geolocate?key=" + process.env.VUE_APP_MAPS_API_KEY;
-				const response = await axios.post(url, JSON.stringify(data));
+				const response = await axios.post(url, JSON.stringify(data), {headers: {'Content-Type': 'application/json'}});
 
 				const latitude = parseFloat(response.data.location.lat);
 				const longitude = parseFloat(response.data.location.lng);
-
-				console.log(response);
 
 				if(latitude && longitude) {
 					var marker = {
@@ -154,6 +181,9 @@ export default {
 				}
 			
 			} catch (error) {
+				document.querySelector('#inputMacAddress').classList.add("is-invalid");
+				document.querySelector('#macAddressNotFound').classList.add("d-block");
+
 				console.error('Ocorreu um erro durante a busca dos dados: ', error);
 			}	
 		}

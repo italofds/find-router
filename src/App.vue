@@ -115,6 +115,7 @@ export default {
 			mapCenter: { lat: 0, lng: 0 },
 			mapZoom: 2,
 			mapOptions: {
+				minZoom: 2,
 				zoomControl: true,
 				streetViewControl: false,
 				fullscreenControl: false,

@@ -1,4 +1,6 @@
 # find-router
+> [!WARNING]
+> Currently, the Google API is not functioning properly for this application's type. New tests and adjustments will be made soon.
 
 This tool receives the MAC address of a Wi-Fi access point and queries a geolocation database to present its geographical position on an interactive map. It provides a precise and quick visualization, making it ideal for tracking and analyzing network devices.
 

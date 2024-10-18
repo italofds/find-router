@@ -61,6 +61,9 @@
 		<main class="flex-grow-1 overflow-auto position-relative">
 			<div class="cover d-flex align-items-center" style="backdrop-filter: blur(10px);" v-if="mapMarkers.length == 0">
 				<div class="container text-center text-light">
+					<div class="alert alert-danger col-lg-6 mx-auto mb-3" role="alert">
+						<strong>ATENÇÃO! </strong>Atualmente, a API do Google não está funcionando adequadamente para o tipo de aplicação dessa ferramenta. Em breve, serão feitos novos testes e ajustes.
+					</div>					
 					<h1 class="mb-3">Encontrar Roteador</h1>
 					<p class="lead col-lg-6 mx-auto mb-5">Esta ferramenta recebe o endereço MAC de um ponto de acesso <em>Wi-Fi</em> e consulta um banco de dados de geolocalização para apresentar sua posição geográfica em um mapa interativo. Proporciona uma visualização precisa e rápida, sendo ideal para o rastreamento e a análise de dispositivos de rede.</p>
 					<form @submit.prevent="handleFormSubmit" class="row justify-content-center" >
